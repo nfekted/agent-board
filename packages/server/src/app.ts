@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import { streamSSE } from "hono/streaming";
-import { BundleSchema, StatusSchema, TransitionError } from "@kanban-mcp/core";
+import { BundleSchema, StatusSchema, TransitionError } from "@agent-board/core";
 import { ConflictError, InvalidProjectError, NotFoundError, type BoardService } from "./service.js";
 import { staticHandler } from "./static.js";
 

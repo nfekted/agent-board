@@ -14,7 +14,7 @@ import {
   type Board,
   type Card,
   type Status,
-} from "@kanban-mcp/core";
+} from "@agent-board/core";
 
 export class NotFoundError extends Error {}
 export class ConflictError extends Error {}
@@ -227,11 +227,14 @@ export class BoardService {
     board.cards.splice(target, 0, card);
   }
 
-  /** Removes the card from the board (finish and manual delete are the same operation). */
+  /** Removes the card from the board (finish and manual delete are the same operation) and its plan file, if it lives in the plans folder. */
   remove(idOrTitle: string, repo?: string): Promise<Card> {
-    return this.mutate((board) => {
+    return this.mutate(async (board) => {
       const idx = this.find(board, idOrTitle, repo);
       const [card] = board.cards.splice(idx, 1);
+      if (card!.plan && isWithin(path.resolve(card!.plan), path.join(path.dirname(this.file), "plans"))) {
+        await fs.rm(card!.plan, { force: true });
+      }
       this.emit({ type: "card.removed", id: card!.id });
       return card!;
     });

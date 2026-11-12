@@ -5,7 +5,7 @@ import os from "node:os";
 import path from "node:path";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
-import { readRunningDaemon, startDaemon } from "@kanban-mcp/server";
+import { readRunningDaemon, startDaemon } from "@agent-board/server";
 import { DaemonClient } from "../src/daemon-client.js";
 import { createMcpServer } from "../src/tools.js";
 import { resolveProject } from "../src/repo.js";

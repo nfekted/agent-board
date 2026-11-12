@@ -1,7 +1,7 @@
 import { promises as fs, watch } from "node:fs";
 import path from "node:path";
 import { serve } from "@hono/node-server";
-import { defaultHome } from "@kanban-mcp/core";
+import { defaultHome } from "@agent-board/core";
 import { createApp } from "./app.js";
 import { BoardService } from "./service.js";
 import { resolveUiDir } from "./static.js";

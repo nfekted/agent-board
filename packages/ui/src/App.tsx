@@ -303,7 +303,7 @@ function CopyStart({ card, t }: { card: Card; t: ColumnProps["t"] }) {
       class="link"
       onClick={(e) => {
         e.stopPropagation();
-        const cmd = `cd ${shellQuote(card.repo)} && claude "/kanban:start ${card.title.replace(/["\\$`]/g, "")}"`;
+        const cmd = `cd ${shellQuote(card.repo)} && claude "/agent-board:start ${card.title.replace(/["\\$`]/g, "")}"`;
         void navigator.clipboard?.writeText(cmd);
         setDone(true);
         setTimeout(() => setDone(false), 1500);

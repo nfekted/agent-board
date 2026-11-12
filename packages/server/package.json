@@ -1,5 +1,5 @@
 {
-  "name": "@kanban-mcp/server",
+  "name": "@agent-board/server",
   "version": "0.0.1",
   "license": "MIT",
   "type": "module",
@@ -11,8 +11,8 @@
   },
   "dependencies": {
     "@hono/node-server": "^2.1.6",
-    "@kanban-mcp/core": "0.0.1",
-    "@kanban-mcp/ui": "0.0.1",
+    "@agent-board/core": "0.0.1",
+    "@agent-board/ui": "0.0.1",
     "hono": "^4.6.0"
   },
   "devDependencies": {

@@ -2,7 +2,7 @@ import { execFile } from "node:child_process";
 import { promises as fs } from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { isWithin } from "@kanban-mcp/core";
+import { isWithin } from "@agent-board/core";
 import { promisify } from "node:util";
 
 const run = promisify(execFile);

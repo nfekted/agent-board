@@ -16,7 +16,7 @@ const MIME: Record<string, string> = {
 /** Location of the built UI (packages/ui/dist), or undefined when it has not been built. */
 export function resolveUiDir(): string | undefined {
   try {
-    const pkg = createRequire(import.meta.url).resolve("@kanban-mcp/ui/package.json");
+    const pkg = createRequire(import.meta.url).resolve("@agent-board/ui/package.json");
     return path.join(path.dirname(pkg), "dist");
   } catch {
     return undefined;

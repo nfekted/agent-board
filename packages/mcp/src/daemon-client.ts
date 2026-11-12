@@ -1,7 +1,7 @@
 import { spawn } from "node:child_process";
 import { createRequire } from "node:module";
-import { defaultHome } from "@kanban-mcp/core";
-import { readRunningDaemon, stopDaemon } from "@kanban-mcp/server";
+import { defaultHome } from "@agent-board/core";
+import { readRunningDaemon, stopDaemon } from "@agent-board/server";
 
 export class DaemonRequestError extends Error {
   constructor(
@@ -36,7 +36,7 @@ export class DaemonClient {
   }
 
   private spawnDaemon(): void {
-    const bin = createRequire(import.meta.url).resolve("@kanban-mcp/server/dist/bin.js");
+    const bin = createRequire(import.meta.url).resolve("@agent-board/server/dist/bin.js");
     const child = spawn(process.execPath, [bin], {
       detached: true,
       stdio: "ignore",

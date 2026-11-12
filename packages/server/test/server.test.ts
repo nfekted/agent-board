@@ -188,6 +188,25 @@ describe("projects", () => {
   });
 });
 
+describe("plan files", () => {
+  it("removing a card deletes its plan file from the plans folder, and leaves files elsewhere alone", async () => {
+    const plans = path.join(dir, "plans");
+    await fs.mkdir(plans);
+    const inside = path.join(plans, "a-1.md");
+    const outside = path.join(dir, "keep.md");
+    await fs.writeFile(inside, "plan");
+    await fs.writeFile(outside, "plan");
+    await app.request("/api/cards", json({ title: "1", repo: "/a" }));
+    await app.request("/api/cards", json({ title: "2", repo: "/a" }));
+    await app.request("/api/cards/1", json({ plan: inside }, "PATCH"));
+    await app.request("/api/cards/2", json({ plan: outside }, "PATCH"));
+    await app.request("/api/cards/1", { method: "DELETE" });
+    await app.request("/api/cards/2", { method: "DELETE" });
+    await expect(fs.access(inside)).rejects.toThrow();
+    await expect(fs.access(outside)).resolves.toBeUndefined();
+  });
+});
+
 describe("external link", () => {
   it("accepts http(s), clears with empty string and rejects other schemes with 400", async () => {
     await app.request("/api/cards", json({ title: "1", repo: "/a", externalUrl: "https://x.test/1" }));

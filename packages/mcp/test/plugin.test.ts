@@ -6,7 +6,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
-import { readRunningDaemon } from "@kanban-mcp/server";
+import { readRunningDaemon } from "@agent-board/server";
 
 const plugin = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../../plugin");
 const read = (p: string) => fs.readFile(path.join(plugin, p), "utf8");
@@ -20,8 +20,8 @@ function frontmatter(md: string): Record<string, string> {
 }
 
 describe("plugin structure", () => {
-  it("has a valid manifest named kanban", async () => {
-    expect(JSON.parse(await read(".claude-plugin/plugin.json")).name).toBe("kanban");
+  it("has a valid manifest named agent-board", async () => {
+    expect(JSON.parse(await read(".claude-plugin/plugin.json")).name).toBe("agent-board");
   });
 
   it("every command has a description and the skill is named", async () => {

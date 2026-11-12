@@ -1,11 +1,11 @@
 ---
 description: Create several cards at once from a notes file
-argument-hint: "<file> - notes file: per card: '## title', optional 'link: https://...', then the scope; or a .json from /kanban:export"
+argument-hint: "<file> - notes file: per card: '## title', optional 'link: https://...', then the scope; or a .json from /agent-board:export"
 ---
 
 Import cards from the file: `$ARGUMENTS`
 
-Load and follow the `kanban-workflow` skill. If the file is a `.json` made by `/kanban:export`, use section "Import a shared export"; otherwise use section "Import". Show a preview and create nothing until the user confirms.
+Load and follow the `kanban-workflow` skill. If the file is a `.json` made by `/agent-board:export`, use section "Import a shared export"; otherwise use section "Import". Show a preview and create nothing until the user confirms.
 
 If the file does not exist or has no `## ` blocks, say so and show this format:
 

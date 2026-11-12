@@ -3,7 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { branchNameFromTitle, slug, StatusSchema, type Bundle, type Card } from "@kanban-mcp/core";
+import { branchNameFromTitle, slug, StatusSchema, type Bundle, type Card } from "@agent-board/core";
 import { readBundle } from "./bundle.js";
 import { DaemonClient, DaemonRequestError } from "./daemon-client.js";
 import { findChildRepos, resolveProject, type ResolvedProject } from "./repo.js";

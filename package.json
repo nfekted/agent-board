@@ -1,5 +1,5 @@
 {
-  "name": "kanban-mcp-monorepo",
+  "name": "agent-board-monorepo",
   "private": true,
   "license": "MIT",
   "type": "module",
@@ -7,7 +7,7 @@
     "packages/*"
   ],
   "scripts": {
-    "build": "npm run build -w @kanban-mcp/core -w @kanban-mcp/server -w @kanban-mcp/ui -w @kanban-mcp/mcp",
+    "build": "npm run build -w @agent-board/core -w @agent-board/server -w @agent-board/ui -w @agent-board/mcp",
     "test": "npm run test --workspaces --if-present"
   }
 }
