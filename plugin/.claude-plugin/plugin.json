@@ -1,0 +1,6 @@
+{
+  "name": "kanban",
+  "version": "0.0.1",
+  "license": "MIT",
+  "description": "Local kanban for Claude Code: queue, planning, doing, validation. Cards live in ~/.kanban."
+}

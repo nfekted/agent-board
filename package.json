@@ -1,0 +1,13 @@
+{
+  "name": "kanban-mcp-monorepo",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build -w @kanban-mcp/core -w @kanban-mcp/server -w @kanban-mcp/ui -w @kanban-mcp/mcp",
+    "test": "npm run test --workspaces --if-present"
+  }
+}
