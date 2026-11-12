@@ -58,6 +58,7 @@ export const api = {
   list: () => call<Card[]>("GET", "/api/cards"),
   projects: () => call<string[]>("GET", "/api/projects"),
   addProject: (path: string) => call<string[]>("POST", "/api/projects", { path }),
+  removeProject: (path: string) => call<string[]>("DELETE", `/api/projects?path=${encodeURIComponent(path)}`),
   create: (title: string, scope: string, repo: string, externalUrl?: string, tags?: string[]) =>
     call<Card>("POST", "/api/cards", { title, scope, repo, externalUrl: externalUrl || undefined, tags }),
   move: (card: Card, status: Status, before?: string | null) =>

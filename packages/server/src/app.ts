@@ -65,6 +65,12 @@ export function createApp(service: BoardService, opts: AppOptions = {}): Hono {
     return c.json(await service.addProject(body.path.trim()), 201);
   });
 
+  app.delete("/api/projects", async (c) => {
+    const dir = c.req.query("path");
+    if (!dir?.trim()) return c.json({ error: "path is required" }, 400);
+    return c.json(await service.removeProject(dir.trim()));
+  });
+
   app.get("/api/cards", async (c) => c.json(await service.list(c.req.query("repo"))));
 
   app.get("/api/cards/:id", async (c) =>

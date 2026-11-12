@@ -169,6 +169,19 @@ describe("projects", () => {
     expect(await (await app.request("/api/projects")).json()).toEqual([real, "/only-with-card"].sort());
   });
 
+  it("removes an empty project, but refuses while it has cards (also nested ones)", async () => {
+    const real = await fs.mkdtemp(path.join(os.tmpdir(), "kanban-proj-"));
+    await app.request("/api/projects", json({ path: real }));
+    await app.request("/api/cards", json({ title: "1", repo: path.join(real, "sub") }));
+    const refused = await app.request(`/api/projects?path=${encodeURIComponent(real)}`, { method: "DELETE" });
+    expect(refused.status).toBe(409);
+    await app.request("/api/cards/1", { method: "DELETE" });
+    const done = await app.request(`/api/projects?path=${encodeURIComponent(real)}`, { method: "DELETE" });
+    expect(done.status).toBe(200);
+    expect(await done.json()).not.toContain(real);
+    expect((await app.request(`/api/projects?path=${encodeURIComponent(real)}`, { method: "DELETE" })).status).toBe(404);
+  });
+
   it("rejects a path that is not an existing directory", async () => {
     expect((await app.request("/api/projects", json({ path: "/does/not/exist" }))).status).toBe(400);
     expect((await app.request("/api/projects", json({}))).status).toBe(400);

@@ -64,6 +64,16 @@ export function App() {
     }
   }
 
+  async function removeProject() {
+    if (!window.confirm(t("project.remove.confirm", { name: repoName(repo) }))) return;
+    try {
+      setProjects(await api.removeProject(repo));
+      chooseRepo("");
+    } catch (e) {
+      showError(e);
+    }
+  }
+
   const within = (child: string, parent: string) => child === parent || child.startsWith(parent.replace(/[\\/]$/, "") + (parent.includes("\\") ? "\\" : "/"));
   const visible = repo ? cards.filter((c) => within(c.repo, repo)) : cards;
   const matches = (c: Card) => {
@@ -139,6 +149,11 @@ export function App() {
             ))}
           </select>
         </label>
+        {repo && (
+          <button class="icon" disabled={visible.length > 0} title={visible.length ? t("project.remove.blocked") : t("project.remove")} aria-label={t("project.remove")} onClick={() => void removeProject()}>
+            🗑
+          </button>
+        )}
         <input class="card-filter" type="search" value={query} placeholder={t("filter.cards")} aria-label={t("filter.cards")} onInput={(e) => setQuery((e.target as HTMLInputElement).value)} />
         <form class="add-project" onSubmit={(e) => { e.preventDefault(); void addProject(); }}>
           <input value={newProject} placeholder={t("project.path")} onInput={(e) => setNewProject((e.target as HTMLInputElement).value)} />

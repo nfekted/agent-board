@@ -105,6 +105,19 @@ export class BoardService {
     });
   }
 
+  /** Unregisters a project folder. Refused while it has cards (including the ones in folders inside it). */
+  removeProject(dir: string): Promise<string[]> {
+    return this.mutate((board) => {
+      const project = path.resolve(dir);
+      const count = board.cards.filter((c) => isWithin(c.repo, project)).length;
+      if (count) throw new ConflictError(`Project has ${count} card(s); finish or delete them first`);
+      if (!board.projects.includes(project)) throw new NotFoundError(`No project "${project}"`);
+      board.projects = board.projects.filter((p) => p !== project);
+      this.emit({ type: "board.changed" });
+      return [...new Set([...board.projects, ...board.cards.map((c) => c.repo)])].sort();
+    });
+  }
+
   async list(repo?: string): Promise<Card[]> {
     await this.queue;
     const { cards } = await loadBoard(this.file);
