@@ -2,6 +2,7 @@
 
 **A local kanban board and planning workflow for AI coding agents.** Cards move through `queue → planning → doing → validation` with a plan you approve before any code is written, in a live web UI. Everything stays on your machine: no account, no cloud.
 
+[![CI](https://github.com/nfekted/agent-board/actions/workflows/ci.yml/badge.svg)](https://github.com/nfekted/agent-board/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 ![agent-board workflow](docs/images/workflow.gif)
