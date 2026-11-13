@@ -1,6 +1,6 @@
 {
   "name": "@agent-board/server",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "license": "MIT",
   "type": "module",
   "main": "dist/index.js",
@@ -11,8 +11,8 @@
   },
   "dependencies": {
     "@hono/node-server": "^2.1.6",
-    "@agent-board/core": "0.0.1",
-    "@agent-board/ui": "0.0.1",
+    "@agent-board/core": "1.0.0",
+    "@agent-board/ui": "1.0.0",
     "hono": "^4.6.0"
   },
   "devDependencies": {

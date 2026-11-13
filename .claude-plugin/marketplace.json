@@ -7,7 +7,7 @@
       "name": "agent-board",
       "source": "./plugin",
       "description": "Local kanban board and planning workflow for AI coding agents: cards move through queue, planning, doing and validation with human-approved plans, in a live web UI. 100% on your machine, no account, no cloud.",
-      "version": "0.0.1",
+      "version": "1.0.0",
       "author": { "name": "Leandro Souto de Paula" },
       "homepage": "https://github.com/nfekted/agent-board",
       "repository": "https://github.com/nfekted/agent-board",

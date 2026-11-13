@@ -1,6 +1,6 @@
 {
   "name": "@agent-board/mcp",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "license": "MIT",
   "type": "module",
   "main": "dist/index.js",
@@ -10,8 +10,8 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@agent-board/core": "0.0.1",
-    "@agent-board/server": "0.0.1",
+    "@agent-board/core": "1.0.0",
+    "@agent-board/server": "1.0.0",
     "@modelcontextprotocol/sdk": "^1.0.0",
     "zod": "^4.6.7"
   },

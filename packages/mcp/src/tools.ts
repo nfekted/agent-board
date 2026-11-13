@@ -21,7 +21,7 @@ const text = (value: unknown) => ({
 const fail = (message: string) => ({ isError: true, content: [{ type: "text" as const, text: message }] });
 
 export function createMcpServer(deps: McpDeps): McpServer {
-  const server = new McpServer({ name: "kanban", version: "0.0.1" });
+  const server = new McpServer({ name: "kanban", version: "1.0.0" });
   const q = (project: string) => `repo=${encodeURIComponent(project)}`;
   const registered = new Set<string>();
 
