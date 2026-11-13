@@ -1,6 +1,7 @@
-import { promises as fs } from "node:fs";
+import { existsSync, promises as fs } from "node:fs";
 import { createRequire } from "node:module";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import type { Context } from "hono";
 
 const MIME: Record<string, string> = {
@@ -13,8 +14,10 @@ const MIME: Record<string, string> = {
   ".png": "image/png",
 };
 
-/** Location of the built UI (packages/ui/dist), or undefined when it has not been built. */
+/** Location of the built UI: a `ui` folder next to the single-file build, else packages/ui/dist; undefined when it has not been built. */
 export function resolveUiDir(): string | undefined {
+  const beside = path.join(path.dirname(fileURLToPath(import.meta.url)), "ui");
+  if (existsSync(path.join(beside, "index.html"))) return beside;
   try {
     const pkg = createRequire(import.meta.url).resolve("@agent-board/ui/package.json");
     return path.join(path.dirname(pkg), "dist");

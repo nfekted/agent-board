@@ -1,7 +1,11 @@
 import { spawn } from "node:child_process";
 import { createRequire } from "node:module";
+import { fileURLToPath } from "node:url";
 import { defaultHome } from "@agent-board/core";
 import { readRunningDaemon, stopDaemon } from "@agent-board/server";
+
+/** Set to true by scripts/bundle.mjs: the daemon then runs from the same single file. */
+declare const BUNDLED: boolean | undefined;
 
 export class DaemonRequestError extends Error {
   constructor(
@@ -36,8 +40,11 @@ export class DaemonClient {
   }
 
   private spawnDaemon(): void {
-    const bin = createRequire(import.meta.url).resolve("@agent-board/server/dist/bin.js");
-    const child = spawn(process.execPath, [bin], {
+    const args =
+      typeof BUNDLED !== "undefined"
+        ? [fileURLToPath(import.meta.url), "daemon"]
+        : [createRequire(import.meta.url).resolve("@agent-board/server/dist/bin.js")];
+    const child = spawn(process.execPath, args, {
       detached: true,
       stdio: "ignore",
       env: { ...process.env, KANBAN_HOME: this.home },

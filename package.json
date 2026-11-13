@@ -8,6 +8,10 @@
   ],
   "scripts": {
     "build": "npm run build -w @agent-board/core -w @agent-board/server -w @agent-board/ui -w @agent-board/mcp",
-    "test": "npm run test --workspaces --if-present"
+    "test": "npm run test --workspaces --if-present",
+    "bundle": "npm run build && node scripts/bundle.mjs"
+  },
+  "devDependencies": {
+    "esbuild": "^0.21.5"
   }
 }

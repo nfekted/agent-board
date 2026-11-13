@@ -1,2 +1,4 @@
 node_modules
 dist
+# the plugin ships its single-file build (npm run bundle)
+!plugin/dist

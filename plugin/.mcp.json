@@ -2,7 +2,7 @@
   "mcpServers": {
     "kanban": {
       "command": "node",
-      "args": ["${CLAUDE_PLUGIN_ROOT}/../packages/mcp/dist/bin.js"]
+      "args": ["${CLAUDE_PLUGIN_ROOT}/dist/agent-board.mjs"]
     }
   }
 }
