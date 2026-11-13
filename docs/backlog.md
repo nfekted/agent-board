@@ -1,4 +1,4 @@
-# Backlog column (notes for the future README)
+# Backlog column
 
 - Column before the queue for cards that exist but are not for now (e.g. technical debt). It is collapsed by default, showing only the counter; click its title to open it (remembered in the browser). Typing in the filter opens it so matches are visible. A collapsed column still accepts dropped cards.
 - Moves: backlog -> queue only, and queue -> backlog. Planning/doing/validation cards go back to the queue first.

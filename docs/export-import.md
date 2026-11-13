@@ -1,4 +1,4 @@
-# Export / import (notes for the future README)
+# Export / import
 
 - Board UI: **Export** (checklist of the cards shown, filter by title, any number of projects; downloads `<name>.kanban.json`) and **Import** (choose the file, one folder per project in the file, skip or rename duplicates).
 - Claude: `/agent-board:export` and `/agent-board:import`; the import asks "folder Claude is open in" or "enter a folder".

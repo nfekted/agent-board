@@ -1,4 +1,4 @@
-# Card order (notes for the future README)
+# Card order
 
 - The order of the cards in a column is their priority: the first one is the next. It is saved on the board, so it survives reloads and other sessions.
 - Drag a card up or down inside its column to reorder; drop it between two cards of another column to move it to that place. Dropped at the end, it goes last.
