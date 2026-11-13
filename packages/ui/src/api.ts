@@ -1,5 +1,14 @@
 export type Status = "backlog" | "queue" | "planning" | "doing" | "validation";
 
+/** Mirror of the core state machine, only to offer the valid targets; the server still enforces it. */
+export const TRANSITIONS: Record<Status, Status[]> = {
+  backlog: ["queue"],
+  queue: ["backlog", "planning", "doing"],
+  planning: ["queue", "doing"],
+  doing: ["validation", "planning"],
+  validation: ["doing", "planning"],
+};
+
 export interface Card {
   id: string;
   title: string;

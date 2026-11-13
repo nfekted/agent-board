@@ -247,7 +247,7 @@ export function createMcpServer(deps: McpDeps): McpServer {
     {
       path: z.string(),
       directory: z.string().optional().describe("Folder for the cards; default: the current project"),
-      projectDirs: z.record(z.string()).optional().describe("Project name in the file -> folder; overrides `directory`"),
+      projectDirs: z.record(z.string(), z.string()).optional().describe("Project name in the file -> folder; overrides `directory`"),
       confirm: z.boolean().optional(),
       onDuplicate: z.enum(["skip", "rename"]).optional(),
     },

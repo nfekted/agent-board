@@ -1,6 +1,6 @@
 ---
 name: kanban-workflow
-description: Rules for working with the local kanban board (cards, planning, branches, validation, commit, finish). Use whenever the user mentions a kanban card, e.g. "start card 123", "finish card 123", or asks to create, plan, adjust or finish one.
+description: Rules for working with the local kanban board (agent-board): cards, planning, branches, validation, commit, finish. Use whenever the user mentions a kanban or board card, e.g. "start card 123", "open a new card on the board", "finish card 123", or asks to create, plan, adjust or finish one.
 ---
 
 # Kanban workflow

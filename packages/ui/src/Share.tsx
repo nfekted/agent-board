@@ -1,4 +1,5 @@
 import { useState } from "preact/hooks";
+import { useDialog } from "./ui";
 import { api, type Bundle, type Card, type ImportPreview } from "./api";
 import type { Key } from "./i18n";
 
@@ -7,7 +8,8 @@ type T = (key: Key, vars?: Record<string, string>) => string;
 const slug = (s: string) => s.replace(/[^A-Za-z0-9._-]/g, "_");
 
 export function ExportDialog({ cards, t, onClose, onError }: { cards: Card[]; t: T; onClose: () => void; onError: (e: unknown) => void }) {
-  const [name, setName] = useState("kanban-export");
+  const dialog = useDialog(onClose);
+  const [name, setName] = useState("agent-board-export");
   const [filter, setFilter] = useState("");
   const [picked, setPicked] = useState<Set<string>>(new Set());
   const shown = cards.filter((c) => c.title.toLowerCase().includes(filter.trim().toLowerCase()));
@@ -33,7 +35,7 @@ export function ExportDialog({ cards, t, onClose, onError }: { cards: Card[]; t:
 
   return (
     <div class="overlay" onClick={onClose}>
-      <div class="dialog" role="dialog" onClick={(e) => e.stopPropagation()}>
+      <div class="dialog" role="dialog" aria-modal="true" aria-label={t("share.exportTitle")} ref={dialog} onClick={(e) => e.stopPropagation()}>
         <h2>{t("share.exportTitle")}</h2>
         <label>{t("share.name")}<input value={name} onInput={(e) => setName((e.target as HTMLInputElement).value)} /></label>
         <input value={filter} placeholder={t("share.filter")} onInput={(e) => setFilter((e.target as HTMLInputElement).value)} />
@@ -72,6 +74,7 @@ export function ImportDialog({ repos, repo, t, onClose, onError, onDone }: {
   onError: (e: unknown) => void;
   onDone: (message: string) => void;
 }) {
+  const dialog = useDialog(onClose);
   const [bundle, setBundle] = useState<Bundle>();
   const [preview, setPreview] = useState<ImportPreview>();
   const [dirs, setDirs] = useState<Record<string, string>>({});
@@ -112,7 +115,7 @@ export function ImportDialog({ repos, repo, t, onClose, onError, onDone }: {
 
   return (
     <div class="overlay" onClick={onClose}>
-      <div class="dialog" role="dialog" onClick={(e) => e.stopPropagation()}>
+      <div class="dialog" role="dialog" aria-modal="true" aria-label={t("share.import")} ref={dialog} onClick={(e) => e.stopPropagation()}>
         <h2>{t("share.import")}</h2>
         <input type="file" accept=".json,application/json" aria-label={t("share.pickFile")} onChange={(e) => { const f = (e.target as HTMLInputElement).files?.[0]; if (f) void load(f); }} />
         {preview && (

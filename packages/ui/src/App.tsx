@@ -1,10 +1,11 @@
 import { render } from "preact";
 import { useEffect, useMemo, useRef, useState } from "preact/hooks";
 import Sortable from "sortablejs";
-import { api, STATUSES, subscribe, type Card, type Status } from "./api";
+import { api, STATUSES, subscribe, TRANSITIONS, type Card, type Status } from "./api";
 import { Mini } from "./Mini";
 import { ExportDialog, ImportDialog } from "./Share";
 import { detectLang, translate, type Key, type Lang } from "./i18n";
+import { Dropdown, Logo, useDialog } from "./ui";
 
 const safeStorage = {
   get: (k: string) => { try { return localStorage.getItem(k) ?? ""; } catch { return ""; } },
@@ -15,13 +16,17 @@ const startRepo = initialRepo || safeStorage.get("kanban.repo");
 const repoName = (repo: string) => repo.split("/").filter(Boolean).pop() ?? repo;
 const fold = (s: string) => s.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase(); // ignore case and accents
 const parseTags = (s: string) => s.split(",").map((t) => t.trim()).filter(Boolean);
+type Theme = "auto" | "light" | "dark";
+const attention = (c: Card) =>
+  c.substatus === "blocked" ? "blocked" : c.substatus === "waiting-user" || c.status === "validation" ? "waiting" : c.substatus === "working" ? "working" : undefined;
 const shellQuote = (s: string) => `'${s.replace(/'/g, `'\\''`)}'`;
 
 export function App() {
   const [cards, setCards] = useState<Card[]>([]);
   const [repo, setRepo] = useState(startRepo); // "" = all projects
   const [projects, setProjects] = useState<string[]>([]);
-  const [newProject, setNewProject] = useState("");
+  const [theme, setTheme] = useState<Theme>((safeStorage.get("kanban.theme") as Theme) || "auto");
+  const filterRef = useRef<HTMLInputElement>(null);
   const [lang, setLang] = useState<Lang>(detectLang());
   const [error, setError] = useState("");
   const [selected, setSelected] = useState<string>();
@@ -52,15 +57,16 @@ export function App() {
     safeStorage.set("kanban.repo", value);
   };
 
-  async function addProject() {
-    const dir = newProject.trim();
-    if (!dir) return;
+  async function addProject(path: string): Promise<boolean> {
+    const dir = path.trim();
+    if (!dir) return false;
     try {
       setProjects(await api.addProject(dir));
       chooseRepo(dir);
-      setNewProject("");
+      return true;
     } catch (e) {
       showError(e);
+      return false;
     }
   }
 
@@ -85,8 +91,24 @@ export function App() {
     const blocked = visible.filter((c) => c.substatus === "blocked").length;
     const waiting = visible.filter((c) => c.status === "validation").length;
     const flags = [blocked && `!${blocked}`, waiting && `✓${waiting}`].filter(Boolean).join(" ");
-    document.title = flags ? `(${flags}) Kanban` : "Kanban";
-  }, [visible]);
+    document.title = flags ? `(${flags}) ${t("title")}` : t("title");
+  }, [visible, lang]);
+  useEffect(() => {
+    if (theme === "auto") delete document.documentElement.dataset.theme;
+    else document.documentElement.dataset.theme = theme;
+    safeStorage.set("kanban.theme", theme);
+  }, [theme]);
+  useEffect(() => {
+    // "/" jumps to the card filter, as in most web tools
+    const onKey = (e: KeyboardEvent) => {
+      const el = e.target as HTMLElement;
+      if (e.key !== "/" || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName) || el.isContentEditable) return;
+      e.preventDefault();
+      filterRef.current?.focus();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, []);
   const showError = (e: unknown) => {
     setError((e as Error).message);
     setTimeout(() => setError(""), 5000);
@@ -129,6 +151,8 @@ export function App() {
   // keep the mini window in sync with the board
   useEffect(() => {
     if (!pip) return;
+    if (theme === "auto") delete pip.document.documentElement.dataset.theme;
+    else pip.document.documentElement.dataset.theme = theme;
     const boardUrl = `${location.origin}/${repo ? `?repo=${encodeURIComponent(repo)}` : ""}`;
     render(<Mini cards={visible} repos={repos} repo={repo} repoName={repoName} onRepo={chooseRepo} boardUrl={boardUrl} t={t} />, pip.document.body);
   });
@@ -137,10 +161,9 @@ export function App() {
   return (
     <div class="app">
       <header>
-        <h1>{t("title")}</h1>
-        <label>
-          {t("filter.repo")}{" "}
-          <select value={repo} onChange={(e) => chooseRepo((e.target as HTMLSelectElement).value)}>
+        <h1><Logo />{t("title")}</h1>
+        <div class="project-picker">
+          <select aria-label={t("filter.repo")} value={repo} onChange={(e) => chooseRepo((e.target as HTMLSelectElement).value)}>
             <option value="">{t("filter.all")}</option>
             {repos.map((r) => (
               <option value={r} key={r} title={r}>
@@ -148,32 +171,53 @@ export function App() {
               </option>
             ))}
           </select>
-        </label>
-        {repo && (
-          <button class="icon" disabled={visible.length > 0} title={visible.length ? t("project.remove.blocked") : t("project.remove")} aria-label={t("project.remove")} onClick={() => void removeProject()}>
-            🗑
-          </button>
-        )}
-        <input class="card-filter" type="search" value={query} placeholder={t("filter.cards")} aria-label={t("filter.cards")} onInput={(e) => setQuery((e.target as HTMLInputElement).value)} />
-        <form class="add-project" onSubmit={(e) => { e.preventDefault(); void addProject(); }}>
-          <input value={newProject} placeholder={t("project.path")} onInput={(e) => setNewProject((e.target as HTMLInputElement).value)} />
-          <button type="submit">{t("project.add")}</button>
-        </form>
-        <button onClick={() => setShare("export")}>{t("share.export")}</button>
-        <button onClick={() => setShare("import")}>{t("share.import")}</button>
+          <Dropdown class="icon" label="+" ariaLabel={t("project.add")} title={t("project.add")} align="left">
+            {(close) => <AddProject t={t} onAdd={(dir) => addProject(dir).then((ok) => ok && close())} />}
+          </Dropdown>
+          {repo && (
+            <button class="icon" disabled={visible.length > 0} title={visible.length ? t("project.remove.blocked") : t("project.remove")} aria-label={t("project.remove")} onClick={() => void removeProject()}>
+              🗑
+            </button>
+          )}
+        </div>
+        <input ref={filterRef} class="card-filter" type="search" value={query} placeholder={t("filter.cards")} aria-label={t("filter.cards")} onInput={(e) => setQuery((e.target as HTMLInputElement).value)} />
+        <Dropdown label={`${t("menu.share")} ▾`}>
+          {(close) => (
+            <>
+              <button class="menu-item" onClick={() => { setShare("export"); close(); }}>{t("share.export")}</button>
+              <button class="menu-item" onClick={() => { setShare("import"); close(); }}>{t("share.import")}</button>
+            </>
+          )}
+        </Dropdown>
         <button onClick={() => (pip ? pip.close() : void openMini())}>{pip ? t("mini.close") : t("mini.open")}</button>
-        <select
-          value={lang}
-          aria-label="language"
-          onChange={(e) => {
-            const next = (e.target as HTMLSelectElement).value as Lang;
-            localStorage.setItem("kanban.lang", next);
-            setLang(next);
-          }}
-        >
-          <option value="en">English</option>
-          <option value="pt-BR">Português</option>
-        </select>
+        <Dropdown class="icon" label="⚙" ariaLabel={t("menu.settings")} title={t("menu.settings")}>
+          {() => (
+            <>
+              <label>
+                {t("settings.language")}
+                <select
+                  value={lang}
+                  onChange={(e) => {
+                    const next = (e.target as HTMLSelectElement).value as Lang;
+                    localStorage.setItem("kanban.lang", next);
+                    setLang(next);
+                  }}
+                >
+                  <option value="en">English</option>
+                  <option value="pt-BR">Português</option>
+                </select>
+              </label>
+              <label>
+                {t("settings.theme")}
+                <select value={theme} onChange={(e) => setTheme((e.target as HTMLSelectElement).value as Theme)}>
+                  <option value="auto">{t("theme.auto")}</option>
+                  <option value="light">{t("theme.light")}</option>
+                  <option value="dark">{t("theme.dark")}</option>
+                </select>
+              </label>
+            </>
+          )}
+        </Dropdown>
       </header>
 
       {error && <div class="toast" role="alert">{error}</div>}
@@ -250,6 +294,8 @@ function Column({ status, title, cards, showRepo, onMove, onOpen, collapsed, onT
     const sortable = Sortable.create(list.current!, {
       group: "cards",
       animation: 150,
+      filter: ".card-actions", // buttons inside the card keep working
+      preventOnFilter: false,
       // dropped inside this column (from another one, or reordered): `before` is the card now right below it
       onAdd: (evt) => onMoveRef.current(evt.item.dataset.id!, status, (evt.item.nextElementSibling as HTMLElement | null)?.dataset.id ?? null),
       onUpdate: (evt) => onMoveRef.current(evt.item.dataset.id!, status, (evt.item.nextElementSibling as HTMLElement | null)?.dataset.id ?? null),
@@ -264,12 +310,22 @@ function Column({ status, title, cards, showRepo, onMove, onOpen, collapsed, onT
         {title} <span class="count">{cards.length}</span>
       </h2>
       {children}
-      <div class="cards" ref={list}>
+      <div class="cards" ref={list} data-hint={status === "backlog" ? t("col.backlog.hint") : undefined}>
         {cards.map((card) => (
-          <article key={card.id} data-id={card.id} class="card" onClick={() => onOpen(card.id)}>
+          <article
+            key={card.id}
+            data-id={card.id}
+            data-attn={attention(card)}
+            class="card"
+            tabIndex={0}
+            onClick={() => onOpen(card.id)}
+            onKeyDown={(e) => { if (e.key === "Enter" && e.target === e.currentTarget) onOpen(card.id); }}
+          >
             <strong>{card.title}</strong>
-            <div class="card-id">{card.id}</div>
-            {showRepo && <span class="repo">{repoName(card.repo)}</span>}
+            <div class="card-meta">
+              {showRepo && <span class="repo">{repoName(card.repo)}</span>}
+              <span class="card-id">{card.id}</span>
+            </div>
             {card.substatus === "blocked" && card.blockReason && <p class="block-reason">{card.blockReason}</p>}
             {card.scope && <p>{card.scope.slice(0, 140)}</p>}
             {card.externalUrl && (
@@ -287,7 +343,18 @@ function Column({ status, title, cards, showRepo, onMove, onOpen, collapsed, onT
               {card.testSteps && <span class="badge muted">{t("card.testSteps")}</span>}
               {card.imported && <span class="badge muted">{t("card.imported")}</span>}
               {card.planSkipped && <span class="badge muted">{t("card.noPlan")}</span>}
-              {card.status === "queue" && <CopyStart card={card} t={t} />}
+              <span class="card-actions">
+                {card.status === "queue" && <CopyStart card={card} t={t} />}
+                <Dropdown class="icon" label="⇄" ariaLabel={t("card.move")} title={t("card.move")}>
+                  {(close) =>
+                    TRANSITIONS[card.status].map((target) => (
+                      <button key={target} class="menu-item" onClick={() => { close(); onMove(card.id, target, null); }}>
+                        {t(`col.${target}` as Key)}
+                      </button>
+                    ))
+                  }
+                </Dropdown>
+              </span>
             </footer>
           </article>
         ))}
@@ -300,7 +367,9 @@ function CopyStart({ card, t }: { card: Card; t: ColumnProps["t"] }) {
   const [done, setDone] = useState(false);
   return (
     <button
-      class="link"
+      class="icon"
+      title={t("card.copyStart")}
+      aria-label={t("card.copyStart")}
       onClick={(e) => {
         e.stopPropagation();
         const cmd = `cd ${shellQuote(card.repo)} && claude "/agent-board:start ${card.title.replace(/["\\$`]/g, "")}"`;
@@ -309,8 +378,23 @@ function CopyStart({ card, t }: { card: Card; t: ColumnProps["t"] }) {
         setTimeout(() => setDone(false), 1500);
       }}
     >
-      {done ? t("card.copied") : t("card.copyStart")}
+      {done ? "✓" : "⧉"}
     </button>
+  );
+}
+
+function AddProject({ t, onAdd }: { t: ColumnProps["t"]; onAdd: (dir: string) => void }) {
+  const [dir, setDir] = useState("");
+  const input = useRef<HTMLInputElement>(null);
+  useEffect(() => input.current?.focus(), []);
+  return (
+    <form class="add-project" onSubmit={(e) => { e.preventDefault(); onAdd(dir); }}>
+      <label>
+        {t("project.path")}
+        <input ref={input} value={dir} placeholder="/home/you/code/app" onInput={(e) => setDir((e.target as HTMLInputElement).value)} />
+      </label>
+      <button type="submit" class="primary">{t("project.add")}</button>
+    </form>
   );
 }
 
@@ -319,10 +403,20 @@ function NewCard({ repo, t, onCreate }: { repo: string; t: ColumnProps["t"]; onC
   const [scope, setScope] = useState("");
   const [link, setLink] = useState("");
   const [tags, setTags] = useState("");
-  if (!repo) return <p class="hint">{t("new.needRepo")}</p>;
+  const [open, setOpen] = useState(false);
+  const titleInput = useRef<HTMLInputElement>(null);
+  useEffect(() => { if (open) titleInput.current?.focus(); }, [open]);
+  if (!repo || !open) {
+    return (
+      <button class="new-toggle" disabled={!repo} title={repo ? undefined : t("new.needRepo")} onClick={() => setOpen(true)}>
+        + {t("new.open")}
+      </button>
+    );
+  }
   return (
     <form
       class="new"
+      onKeyDown={(e) => { if (e.key === "Escape") setOpen(false); }}
       onSubmit={(e) => {
         e.preventDefault();
         if (!title.trim()) return;
@@ -333,11 +427,14 @@ function NewCard({ repo, t, onCreate }: { repo: string; t: ColumnProps["t"]; onC
         setTags("");
       }}
     >
-      <input value={title} placeholder={t("new.title")} onInput={(e) => setTitle((e.target as HTMLInputElement).value)} />
+      <input ref={titleInput} value={title} placeholder={t("new.title")} onInput={(e) => setTitle((e.target as HTMLInputElement).value)} />
       <textarea value={scope} placeholder={t("new.scope")} rows={2} onInput={(e) => setScope((e.target as HTMLTextAreaElement).value)} />
       <input value={link} placeholder={t("link")} onInput={(e) => setLink((e.target as HTMLInputElement).value)} />
       <input value={tags} placeholder={t("tags")} onInput={(e) => setTags((e.target as HTMLInputElement).value)} />
-      <button type="submit">{t("new.add")}</button>
+      <div class="actions">
+        <button type="submit" class="primary">{t("new.add")}</button>
+        <button type="button" onClick={() => setOpen(false)}>{t("new.cancel")}</button>
+      </div>
     </form>
   );
 }
@@ -357,10 +454,18 @@ function Detail({ card, t, onClose, onSave, onDelete }: DetailProps) {
   const [externalUrl, setExternalUrl] = useState(card.externalUrl ?? "");
   const [tags, setTags] = useState(card.tags.join(", "));
   const [testSteps, setTestSteps] = useState(card.testSteps ?? "");
+  const dialog = useDialog(onClose);
+  const [wide, setWide] = useState(safeStorage.get("kanban.detailWide") === "1");
+  const toggleWide = () => { setWide(!wide); safeStorage.set("kanban.detailWide", wide ? "0" : "1"); };
   return (
-    <div class="overlay" onClick={onClose}>
-      <div class="dialog" role="dialog" onClick={(e) => e.stopPropagation()}>
-        <input value={title} onInput={(e) => setTitle((e.target as HTMLInputElement).value)} />
+    <div class={`overlay side${wide ? " wide" : ""}`} onClick={onClose}>
+      <div class="dialog" role="dialog" aria-modal="true" aria-label={card.title} ref={dialog} onClick={(e) => e.stopPropagation()}>
+        <div class="detail-head">
+          <input value={title} aria-label={t("new.title")} onInput={(e) => setTitle((e.target as HTMLInputElement).value)} />
+          <button type="button" class="icon" title={wide ? t("detail.collapse") : t("detail.expand")} aria-label={wide ? t("detail.collapse") : t("detail.expand")} aria-pressed={wide} onClick={toggleWide}>
+            {wide ? "⤡" : "⤢"}
+          </button>
+        </div>
         <div class="card-id">{card.id}</div>
         {card.substatus === "blocked" && <p class="block-reason"><strong>{t("card.blocked")}:</strong> {card.blockReason}</p>}
         <label>{t("detail.scope")}<textarea rows={8} value={scope} onInput={(e) => setScope((e.target as HTMLTextAreaElement).value)} /></label>
